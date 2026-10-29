@@ -18,8 +18,9 @@
 package net.elytrium.limboapi.server.world;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import com.velocitypowered.api.network.ProtocolVersion;
+import java.lang.reflect.Type;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
@@ -34,6 +35,9 @@ import net.elytrium.limboapi.api.material.WorldVersion;
 public class SimpleItem implements VirtualItem {
 
   private static final Gson GSON = new Gson();
+
+  private static final Type STRING_STRING_MAP = new TypeToken<Map<String, String>>() {}.getType();
+  private static final Type ITEMS_MAPPING_TYPE = new TypeToken<Map<String, Map<String, String>>>() {}.getType();
 
   private static final Map<String, SimpleItem> MODERN_ID_MAP = new HashMap<>();
   private static final Map<Integer, SimpleItem> LEGACY_ID_MAP = new HashMap<>();
@@ -74,34 +78,33 @@ public class SimpleItem implements VirtualItem {
     return this.modernId;
   }
 
-  @SuppressWarnings("unchecked")
   public static void init() {
-    LinkedTreeMap<String, LinkedTreeMap<String, String>> itemsMapping = GSON.fromJson(
+    Map<String, Map<String, String>> itemsMapping = GSON.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/items_mapping.json")), StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        ITEMS_MAPPING_TYPE
     );
 
-    LinkedTreeMap<String, String> modernItems = GSON.fromJson(
+    Map<String, String> modernItems = GSON.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/items.json")), StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        STRING_STRING_MAP
     );
 
-    LinkedTreeMap<String, String> legacyItems = GSON.fromJson(
+    Map<String, String> legacyItems = GSON.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/legacyitems.json")), StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        STRING_STRING_MAP
     );
 
-    LinkedTreeMap<String, String> modernIdRemap = GSON.fromJson(
+    Map<String, String> modernIdRemap = GSON.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/modern_item_id_remap.json")), StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        STRING_STRING_MAP
     );
 
     modernItems.forEach((modernId, modernProtocolId) -> {

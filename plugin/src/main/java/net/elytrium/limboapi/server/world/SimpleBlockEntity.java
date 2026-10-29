@@ -18,8 +18,9 @@
 package net.elytrium.limboapi.server.world;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import com.velocitypowered.api.network.ProtocolVersion;
+import java.lang.reflect.Type;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
@@ -34,6 +35,9 @@ import net.kyori.adventure.nbt.CompoundBinaryTag;
 public class SimpleBlockEntity implements VirtualBlockEntity {
 
   private static final Gson GSON = new Gson();
+
+  private static final Type BLOCK_ENTITIES_MAPPING_TYPE =
+      new TypeToken<Map<String, Map<String, String>>>() {}.getType();
 
   private static final Map<String, SimpleBlockEntity> MODERN_ID_MAP = new HashMap<>();
 
@@ -74,13 +78,12 @@ public class SimpleBlockEntity implements VirtualBlockEntity {
     return new Entry(posX, posY, posZ, nbt);
   }
 
-  @SuppressWarnings("unchecked")
   public static void init() {
-    LinkedTreeMap<String, LinkedTreeMap<String, String>> blockEntitiesMapping = GSON.fromJson(
+    Map<String, Map<String, String>> blockEntitiesMapping = GSON.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/blockentities_mapping.json")), StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        BLOCK_ENTITIES_MAPPING_TYPE
     );
 
     blockEntitiesMapping.forEach((modernId, protocols) -> {

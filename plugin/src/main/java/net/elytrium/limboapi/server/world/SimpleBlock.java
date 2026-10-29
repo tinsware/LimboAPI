@@ -18,8 +18,9 @@
 package net.elytrium.limboapi.server.world;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import com.velocitypowered.api.network.ProtocolVersion;
+import java.lang.reflect.Type;
 import io.netty.util.collection.ShortObjectHashMap;
 import io.netty.util.collection.ShortObjectMap;
 import java.io.InputStreamReader;
@@ -40,6 +41,8 @@ import org.checkerframework.checker.nullness.qual.NonNull;
 public class SimpleBlock implements VirtualBlock {
 
   private static final Gson GSON = new Gson();
+  private static final Type STRING_STRING_MAP = new TypeToken<Map<String, String>>() {}.getType();
+  private static final Type NESTED_STRING_STRING_MAP = new TypeToken<Map<String, Map<String, String>>>() {}.getType();
   private static final ShortObjectHashMap<SimpleBlock> LEGACY_BLOCK_STATE_IDS_MAP = new ShortObjectHashMap<>();
   private static final Map<ProtocolVersion, ShortObjectMap<Short>> MODERN_BLOCK_STATE_IDS_MAP = new EnumMap<>(ProtocolVersion.class);
   private static final ShortObjectHashMap<String> MODERN_BLOCK_STATE_PROTOCOL_ID_MAP = new ShortObjectHashMap<>();
@@ -51,24 +54,23 @@ public class SimpleBlock implements VirtualBlock {
 
   public static final SimpleBlock AIR = new SimpleBlock(false, true, false, "minecraft:air", (short) 0, (short) 0);
 
-  @SuppressWarnings("unchecked")
   public static void init() {
-    LinkedTreeMap<String, String> blocks = GSON.fromJson(
+    Map<String, String> blocks = GSON.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/blocks.json")),
             StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        STRING_STRING_MAP
     );
 
     blocks.forEach((modernId, protocolId) -> MODERN_BLOCK_STRING_MAP.put(modernId, parseNumericId(protocolId)));
 
-    LinkedTreeMap<String, LinkedTreeMap<String, String>> blockVersionMapping = GSON.fromJson(
+    Map<String, Map<String, String>> blockVersionMapping = GSON.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/blocks_mapping.json")),
             StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        NESTED_STRING_STRING_MAP
     );
 
     blockVersionMapping.forEach((protocolId, versionMap) -> {
@@ -77,9 +79,9 @@ public class SimpleBlock implements VirtualBlock {
       LEGACY_BLOCK_IDS_MAP.put(parseNumericId(protocolId), deserializedVersionMap);
     });
 
-    LinkedTreeMap<String, String> blockStates = GSON.fromJson(
+    Map<String, String> blockStates = GSON.fromJson(
         new InputStreamReader(Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/blockstates.json")), StandardCharsets.UTF_8),
-        LinkedTreeMap.class
+        STRING_STRING_MAP
     );
     blockStates.forEach((key, value) -> {
       MODERN_BLOCK_STATE_PROTOCOL_ID_MAP.put(parseNumericId(value), key);
@@ -97,18 +99,18 @@ public class SimpleBlock implements VirtualBlock {
       }
     });
 
-    LinkedTreeMap<String, String> legacyBlocks = GSON.fromJson(
+    Map<String, String> legacyBlocks = GSON.fromJson(
         new InputStreamReader(Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/legacyblocks.json")), StandardCharsets.UTF_8),
-        LinkedTreeMap.class
+        STRING_STRING_MAP
     );
     legacyBlocks.forEach((legacyBlockID, modernID)
         -> LEGACY_BLOCK_STATE_IDS_MAP.put(parseNumericId(legacyBlockID), solid(parseNumericId(modernID))));
 
     LEGACY_BLOCK_STATE_IDS_MAP.put((short) 0, AIR);
 
-    LinkedTreeMap<String, LinkedTreeMap<String, String>> modernMap = GSON.fromJson(
+    Map<String, Map<String, String>> modernMap = GSON.fromJson(
         new InputStreamReader(Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/blockstates_mapping.json")), StandardCharsets.UTF_8),
-        LinkedTreeMap.class
+        NESTED_STRING_STRING_MAP
     );
 
     modernMap.forEach((modernID, versionMap) -> {
@@ -119,21 +121,21 @@ public class SimpleBlock implements VirtualBlock {
       }
     });
 
-    LinkedTreeMap<String, LinkedTreeMap<String, String>> properties = GSON.fromJson(
+    Map<String, Map<String, String>> properties = GSON.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/defaultblockproperties.json")),
             StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        NESTED_STRING_STRING_MAP
     );
     properties.forEach((key, value) -> DEFAULT_PROPERTIES_MAP.put(key, new HashMap<>(value)));
 
-    LinkedTreeMap<String, String> modernIdRemap = GSON.fromJson(
+    Map<String, String> modernIdRemap = GSON.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/modern_block_id_remap.json")),
             StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        STRING_STRING_MAP
     );
     MODERN_ID_REMAP.putAll(modernIdRemap);
   }

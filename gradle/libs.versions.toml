@@ -6,7 +6,7 @@ gradle-shadow = "9.6.1" # https://github.com/GradleUp/shadow
 gradle-spotbugs = "6.4.8" # https://github.com/spotbugs/spotbugs-gradle-plugin
 minecraft-adventure = "5.2.0" # https://github.com/KyoriPowered/adventure
 minecraft-bstats = "3.0.0" # https://github.com/Bastian/bStats
-minecraft-velocityctd = "4.2.1-SNAPSHOT" # https://github.com/GemstoneGG/Velocity-CTD
+minecraft-velocityctd = "4.3.2-SNAPSHOT" # https://github.com/GemstoneGG/Velocity-CTD
 tool-commons-io = "2.6" # https://github.com/apache/commons-io
 tool-fastutil = "8.5.19" # https://github.com/vigna/fastutil/
 tool-google-guava = "33.7.1-jre" # https://github.com/google/guava
@@ -35,3 +35,4 @@ tool-spotbugs-annotations = { module = "com.github.spotbugs:spotbugs-annotations
 gradle-licenser = { id = "net.minecraftforge.licenser", version.ref = "gradle-licenser" }
 gradle-shadow = { id = "com.gradleup.shadow", version.ref = "gradle-shadow" }
 gradle-spotbugs = { id = "com.github.spotbugs", version.ref = "gradle-spotbugs" }
+

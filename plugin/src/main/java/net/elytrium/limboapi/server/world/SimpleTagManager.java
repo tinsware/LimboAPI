@@ -18,12 +18,14 @@
 package net.elytrium.limboapi.server.world;
 
 import com.google.gson.Gson;
-import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import com.velocitypowered.api.network.ProtocolVersion;
 import java.io.InputStreamReader;
+import java.lang.reflect.Type;
 import java.nio.charset.StandardCharsets;
 import java.util.EnumMap;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -34,28 +36,30 @@ import net.elytrium.limboapi.protocol.packets.s2c.UpdateTagsPacket;
 
 public class SimpleTagManager {
 
+  private static final Type STRING_STRING_MAP = new TypeToken<Map<String, String>>() {}.getType();
+  private static final Type TAGS_TYPE = new TypeToken<Map<String, Map<String, List<String>>>>() {}.getType();
+
   private static final Map<String, Integer> FLUIDS = new HashMap<>();
   private static final Map<WorldVersion, UpdateTagsPacket> VERSION_MAP = new EnumMap<>(WorldVersion.class);
 
-  @SuppressWarnings("unchecked")
   public static void init() {
     Gson gson = new Gson();
-    LinkedTreeMap<String, String> fluids = gson.fromJson(
+    Map<String, String> fluids = gson.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/fluids.json")),
             StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        STRING_STRING_MAP
     );
 
     fluids.forEach((id, protocolId) -> FLUIDS.put(id, Integer.valueOf(protocolId)));
 
-    LinkedTreeMap<String, LinkedTreeMap<String, List<String>>> tags = gson.fromJson(
+    Map<String, Map<String, List<String>>> tags = gson.fromJson(
         new InputStreamReader(
             Objects.requireNonNull(LimboAPI.class.getResourceAsStream("/mapping/tags.json")),
             StandardCharsets.UTF_8
         ),
-        LinkedTreeMap.class
+        TAGS_TYPE
     );
 
     for (WorldVersion version : WorldVersion.values()) {
@@ -71,11 +75,11 @@ public class SimpleTagManager {
     return VERSION_MAP.get(version);
   }
 
-  private static UpdateTagsPacket localGetTagsForVersion(LinkedTreeMap<String, LinkedTreeMap<String, List<String>>> defaultTags,
+  private static UpdateTagsPacket localGetTagsForVersion(Map<String, Map<String, List<String>>> defaultTags,
                                                          WorldVersion version) {
-    Map<String, Map<String, List<Integer>>> tags = new LinkedTreeMap<>();
+    Map<String, Map<String, List<Integer>>> tags = new LinkedHashMap<>();
     defaultTags.forEach((tagType, defaultTagList) -> {
-      LinkedTreeMap<String, List<Integer>> tagList = new LinkedTreeMap<>();
+      Map<String, List<Integer>> tagList = new LinkedHashMap<>();
       switch (tagType) {
         case "minecraft:block": {
           defaultTagList.forEach((tagName, blockList) ->
